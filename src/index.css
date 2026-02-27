@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* React Big Calendar overrides for full-screen look */
+.rbc-calendar-full {
+  height: 100% !important;
+  min-height: 400px;
+}
+.rbc-toolbar {
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.rbc-toolbar button {
+  @apply rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50;
+}
+.rbc-toolbar button.rbc-active {
+  @apply border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-500;
+}
+.rbc-month-view,
+.rbc-time-view {
+  @apply rounded-lg border border-slate-200;
+}
+.rbc-event {
+  @apply border-0;
+}
+.rbc-today {
+  @apply bg-indigo-50/50;
+}
