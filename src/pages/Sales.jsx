@@ -17,7 +17,7 @@ export default function Sales() {
 
   const personOptions = [
     { value: '', label: 'All persons' },
-    ...persons.map((p) => ({ value: p.id, label: p.name })),
+    ...persons.map((p) => ({ value: p.id || p._id, label: p.name })),
   ];
 
   const filteredSalesEntries = useMemo(() => {
@@ -25,7 +25,7 @@ export default function Sales() {
     return salesEntries.filter(
       (e) =>
         e.personId === selectedPersonId ||
-        e.name === persons.find((p) => p.id === selectedPersonId)?.name
+        e.name === persons.find((p) => (p.id || p._id) === selectedPersonId)?.name
     );
   }, [salesEntries, selectedPersonId, persons]);
 

@@ -14,7 +14,7 @@ export default function SalesEntryModal({ open, onClose, onSave, selectedDate })
   const { persons } = useApp();
   const personOptions = [
     { value: '', label: '— Select person (optional) —' },
-    ...persons.map((p) => ({ value: p.id, label: p.name || p.id })),
+    ...persons.map((p) => ({ value: p.id || p._id, label: p.name || p.id || p._id })),
   ];
 
   const {
@@ -64,7 +64,7 @@ export default function SalesEntryModal({ open, onClose, onSave, selectedDate })
       setError('deposit', { message: 'Deposit is required' });
       return;
     }
-    const person = persons.find((p) => p.id === data.name);
+    const person = persons.find((p) => (p.id || p._id) === data.name);
     onSave({
       name: person?.name ?? data.name ?? '',
       personId: data.name || null,

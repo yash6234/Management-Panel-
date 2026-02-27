@@ -70,7 +70,7 @@ export default function Data() {
               <div className={dataGridClass}>
                 {filteredPersons.map((p) => (
                   <DetailCard
-                    key={p.id}
+                    key={p.id || p._id}
                     title={p.name}
                     className="h-full"
                     fields={[

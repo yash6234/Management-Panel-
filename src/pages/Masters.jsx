@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Tabs, Card, Table, Button, ActionIcon } from '@mantine/core';
+import { Tabs, Card, Table, Button, ActionIcon, Loader, Alert } from '@mantine/core';
 import { UserPlus, Fuel, Briefcase, Pencil, Trash2, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSearch } from '../context/SearchContext';
@@ -20,6 +20,8 @@ export default function Masters() {
 
   const {
     persons,
+    personsLoading,
+    personsError,
     dieselEntries,
     commissionLabour,
     addPerson,
@@ -61,11 +63,19 @@ export default function Masters() {
     setEditingPerson(p);
     setPersonModalOpen(true);
   };
-  const handleSavePerson = (data) => {
-    if (editingPerson) updatePerson(editingPerson.id, data);
-    else addPerson(data);
-    setPersonModalOpen(false);
-    setEditingPerson(null);
+  const [personSaveError, setPersonSaveError] = useState(null);
+
+  const handleSavePerson = async (data) => {
+    setPersonSaveError(null);
+    try {
+      const id = editingPerson?.id || editingPerson?._id;
+      if (editingPerson) await updatePerson(id, data);
+      else await addPerson(data);
+      setPersonModalOpen(false);
+      setEditingPerson(null);
+    } catch (err) {
+      setPersonSaveError(err.response?.data?.message || err.message || 'Failed to save');
+    }
   };
 
   const handleAddDiesel = () => {
@@ -98,8 +108,14 @@ export default function Masters() {
     setEditingCommission(null);
   };
 
-  const handleDeletePerson = (p) => {
-    if (window.confirm(`Delete "${p.name}"?`)) removePerson(p.id);
+  const handleDeletePerson = async (p) => {
+    if (window.confirm(`Delete "${p.name}"?`)) {
+      try {
+        await removePerson(p.id || p._id);
+      } catch (err) {
+        alert(err.response?.data?.message || err.message || 'Failed to delete');
+      }
+    }
   };
   const handleDeleteDiesel = (d) => {
     if (window.confirm(`Delete "${d.name}"?`)) removeDiesel(d.id);
@@ -137,7 +153,13 @@ export default function Masters() {
                 Add Person
               </Button>
             </div>
-            {filteredPersons.length === 0 ? (
+            {personsError && <Alert color="red" mb="md">{personsError}</Alert>}
+            {personSaveError && <Alert color="red" mb="md">{personSaveError}</Alert>}
+            {personsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader color="teal" />
+              </div>
+            ) : filteredPersons.length === 0 ? (
               <p className="py-8 text-center text-slate-500">No persons yet. Click Add Person to create one.</p>
             ) : (
               <Table striped highlightOnHover>
@@ -152,7 +174,7 @@ export default function Masters() {
                 </Table.Thead>
                 <Table.Tbody>
                   {filteredPersons.map((p) => (
-                    <Table.Tr key={p.id}>
+                    <Table.Tr key={p.id || p._id}>
                       <Table.Td className="font-medium">{p.name}</Table.Td>
                       <Table.Td>{p.mobile || '—'}</Table.Td>
                       <Table.Td>{p.email || '—'}</Table.Td>

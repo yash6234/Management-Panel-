@@ -1,23 +1,70 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import {
+  fetchSalesMen,
+  addSalesMan,
+  editSalesMan,
+  deleteSalesMan,
+} from '../api/salesMan.js';
+import { getToken } from '../api/auth.js';
+import { useAuth } from './AuthContext.jsx';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  const { isAuthenticated } = useAuth();
   const [persons, setPersons] = useState([]);
+  const [personsLoading, setPersonsLoading] = useState(false);
+  const [personsError, setPersonsError] = useState(null);
   const [dieselEntries, setDieselEntries] = useState([]);
   const [commissionLabour, setCommissionLabour] = useState([]);
   const [salesEntries, setSalesEntries] = useState([]);
 
-  const addPerson = (person) => {
-    setPersons((prev) => [...prev, { ...person, id: crypto.randomUUID() }]);
+  const loadPersons = async () => {
+    setPersonsLoading(true);
+    setPersonsError(null);
+    try {
+      const data = await fetchSalesMen();
+      setPersons(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setPersonsError(err.response?.data?.message || err.message || 'Failed to fetch persons');
+      setPersons([]);
+    } finally {
+      setPersonsLoading(false);
+    }
   };
 
-  const updatePerson = (id, data) => {
-    setPersons((prev) => prev.map((p) => (p.id === id ? { ...p, ...data } : p)));
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadPersons();
+    } else {
+      setPersons([]);
+      setPersonsError(null);
+    }
+  }, [isAuthenticated]);
+
+  const addPerson = async (person) => {
+    const result = await addSalesMan(person);
+    if (Array.isArray(result) && result.length > 0) {
+      setPersons((prev) => {
+        const exists = prev.some((p) => (p.id || p._id) === (result[0].id || result[0]._id));
+        if (exists) return prev.map((p) => (p.id === result[0].id ? result[0] : p));
+        return [...prev, result[0]];
+      });
+    } else {
+      await loadPersons();
+    }
   };
 
-  const removePerson = (id) => {
-    setPersons((prev) => prev.filter((p) => p.id !== id));
+  const updatePerson = async (id, data) => {
+    await editSalesMan(id, data);
+    setPersons((prev) =>
+      prev.map((p) => ((p.id || p._id) === id ? { ...p, ...data } : p))
+    );
+  };
+
+  const removePerson = async (id) => {
+    await deleteSalesMan(id);
+    setPersons((prev) => prev.filter((p) => (p.id || p._id) !== id));
   };
 
   const addDiesel = (entry) => {
@@ -69,6 +116,9 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         persons,
+        personsLoading,
+        personsError,
+        loadPersons,
         dieselEntries,
         commissionLabour,
         salesEntries,

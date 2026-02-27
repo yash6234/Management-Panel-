@@ -2,7 +2,14 @@ import axios from 'axios';
 import Cookie from 'js-cookie';
 import { encryptData, decryptData } from './enc.dec_admin.js';
 
+const TOKEN_KEY = 'auth_token';
 const cookieData = Cookie.get('data');
+
+export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const setToken = (token) => {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+};
 
 const getBaseUrl = () => {
   const ip = import.meta.env.VITE_IP || '';
@@ -23,18 +30,15 @@ export const login = async (data) => {
       `${baseUrl}/admin/auth/login/${encodedData}`
     );
 
-    const encryptedPayload =response.data?.data;
-        console.log("1   ",encryptedPayload);
+    const encryptedPayload = response.data?.data;
 
     if (!encryptedPayload) {
-      console.log("2   ",encryptedPayload);
       return { success: false, msg: 'Invalid server response' };
     }
     const encryptedMessage =response.data?.message
 
     const decrypted = decryptData(encryptedPayload);
-    const decryptedMessage = decryptData(encryptedMessage);
-    console.log("3   ",decrypted);
+    const decryptedMessage = encryptedMessage ? decryptData(encryptedMessage) : null;
     if (!decrypted) {
       return { success: false, msg: 'Unable to decrypt server response' };
     }
@@ -43,10 +47,13 @@ export const login = async (data) => {
       decrypted === 'Login_Verified_Successfully_And_Response_Token_Sent' ||
       decryptedMessage === 'Login_Verified_Successfully_And_Response_Token_Sent'
     ) {
+      const token = response.data?.token;
+      if (token) setToken(token);
       return {
         success: true,
         data: decrypted,
-        msg: 'Login successful, OTP sent',
+        token,
+        msg: 'Login successful',
       };
     }
 

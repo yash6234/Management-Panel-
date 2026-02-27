@@ -1,9 +1,10 @@
 import { createContext, useContext, useState } from 'react';
+import { getToken, setToken } from '../api/auth.js';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
   const [pendingEmail, setPendingEmail] = useState('');
 
   const requestOtp = (email) => {
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    setToken(null);
     setIsAuthenticated(false);
     setPendingEmail('');
   };
