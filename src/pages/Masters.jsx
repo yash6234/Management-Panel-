@@ -1,26 +1,37 @@
 import { useState } from 'react';
-import { UserPlus, Fuel, Briefcase } from 'lucide-react';
+import { Tabs, Card, Table, Button, ActionIcon } from '@mantine/core';
+import { UserPlus, Fuel, Briefcase, Pencil, Trash2, Eye } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSearch } from '../context/SearchContext';
 import PersonModal from '../components/masters/PersonModal';
 import DieselModal from '../components/masters/DieselModal';
 import CommissionLabourModal from '../components/masters/CommissionLabourModal';
 import PersonViewModal from '../components/sales/PersonViewModal';
-import Modal from '../components/ui/Modal';
-import DetailCard, { detailGridClass } from '../components/ui/DetailCard';
-
-const masterCards = [
-  { id: 'person', title: 'Person', icon: UserPlus },
-  { id: 'diesel', title: 'Diesel', icon: Fuel },
-  { id: 'commission', title: 'Commission / Labour', icon: Briefcase },
-];
 
 export default function Masters() {
-  const [openModal, setOpenModal] = useState(null);
+  const [activeTab, setActiveTab] = useState('person');
+  const [personModalOpen, setPersonModalOpen] = useState(false);
+  const [dieselModalOpen, setDieselModalOpen] = useState(false);
+  const [commissionModalOpen, setCommissionModalOpen] = useState(false);
+  const [editingPerson, setEditingPerson] = useState(null);
+  const [editingDiesel, setEditingDiesel] = useState(null);
+  const [editingCommission, setEditingCommission] = useState(null);
   const [viewingPerson, setViewingPerson] = useState(null);
-  const [viewingDiesel, setViewingDiesel] = useState(null);
-  const [viewingCommission, setViewingCommission] = useState(null);
-  const { addPerson, addDiesel, addCommissionLabour, removePerson, removeDiesel, removeCommissionLabour, persons, dieselEntries, commissionLabour } = useApp();
+
+  const {
+    persons,
+    dieselEntries,
+    commissionLabour,
+    addPerson,
+    updatePerson,
+    removePerson,
+    addDiesel,
+    updateDiesel,
+    removeDiesel,
+    addCommissionLabour,
+    updateCommissionLabour,
+    removeCommissionLabour,
+  } = useApp();
   const { searchQuery } = useSearch();
 
   const matchesSearch = (text) => {
@@ -42,6 +53,51 @@ export default function Masters() {
     (c) => matchesSearch(c.name) || matchesSearch(String(c.amount))
   );
 
+  const handleAddPerson = () => {
+    setEditingPerson(null);
+    setPersonModalOpen(true);
+  };
+  const handleEditPerson = (p) => {
+    setEditingPerson(p);
+    setPersonModalOpen(true);
+  };
+  const handleSavePerson = (data) => {
+    if (editingPerson) updatePerson(editingPerson.id, data);
+    else addPerson(data);
+    setPersonModalOpen(false);
+    setEditingPerson(null);
+  };
+
+  const handleAddDiesel = () => {
+    setEditingDiesel(null);
+    setDieselModalOpen(true);
+  };
+  const handleEditDiesel = (d) => {
+    setEditingDiesel(d);
+    setDieselModalOpen(true);
+  };
+  const handleSaveDiesel = (data) => {
+    if (editingDiesel) updateDiesel(editingDiesel.id, data);
+    else addDiesel(data);
+    setDieselModalOpen(false);
+    setEditingDiesel(null);
+  };
+
+  const handleAddCommission = () => {
+    setEditingCommission(null);
+    setCommissionModalOpen(true);
+  };
+  const handleEditCommission = (c) => {
+    setEditingCommission(c);
+    setCommissionModalOpen(true);
+  };
+  const handleSaveCommission = (data) => {
+    if (editingCommission) updateCommissionLabour(editingCommission.id, data);
+    else addCommissionLabour(data);
+    setCommissionModalOpen(false);
+    setEditingCommission(null);
+  };
+
   const handleDeletePerson = (p) => {
     if (window.confirm(`Delete "${p.name}"?`)) removePerson(p.id);
   };
@@ -57,133 +113,204 @@ export default function Masters() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Masters</h1>
         <p className="mt-1 text-slate-600">
-          Manage Person, Diesel, and Commission/Labour data. Click a card to open the form.
+          Manage Person, Vehicle, and Commission/Labour data. Use tabs to switch between tables.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        {masterCards.map(({ id, title, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setOpenModal(id)}
-            className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-indigo-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100">
-              <Icon className="h-5 w-5 text-indigo-600" />
-            </div>
-            <span className="truncate text-sm font-semibold text-slate-800">{title}</span>
-          </button>
-        ))}
-      </div>
+      <Card shadow="sm" padding="lg" radius="md" className="border border-[#E5E7EB] bg-white">
+        <Tabs value={activeTab} onChange={setActiveTab}>
+          <Tabs.List>
+            <Tabs.Tab value="person" leftSection={<UserPlus className="h-4 w-4" />}>
+              Personal Details
+            </Tabs.Tab>
+            <Tabs.Tab value="diesel" leftSection={<Fuel className="h-4 w-4" />}>
+              Vehicle
+            </Tabs.Tab>
+            <Tabs.Tab value="commission" leftSection={<Briefcase className="h-4 w-4" />}>
+              Commission/Labour
+            </Tabs.Tab>
+          </Tabs.List>
 
-      <div className="mt-10 space-y-8">
-        {persons.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">Persons</h2>
-            <div className={detailGridClass}>
-              {filteredPersons.map((p) => (
-                <DetailCard
-                  key={p.id}
-                  title={p.name}
-                  fields={[
-                    { label: 'M.no', value: p.mobile },
-                    { label: 'Email', value: p.email },
-                    { label: 'Address', value: p.address },
-                  ]}
-                  onView={() => setViewingPerson(p)}
-                  onDelete={() => handleDeletePerson(p)}
-                />
-              ))}
+          <Tabs.Panel value="person" pt="md">
+            <div className="mb-4 flex justify-end">
+              <Button leftSection={<UserPlus className="h-4 w-4" />} color="teal" onClick={handleAddPerson}>
+                Add Person
+              </Button>
             </div>
-          </section>
-        )}
-        {dieselEntries.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">Diesel</h2>
-            <div className={detailGridClass}>
-              {filteredDiesel.map((d) => (
-                <DetailCard
-                  key={d.id}
-                  title={d.name}
-                  fields={[{ label: 'Amount', value: String(d.amount) }]}
-                  onView={() => setViewingDiesel(d)}
-                  onDelete={() => handleDeleteDiesel(d)}
-                />
-              ))}
+            {filteredPersons.length === 0 ? (
+              <p className="py-8 text-center text-slate-500">No persons yet. Click Add Person to create one.</p>
+            ) : (
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>M.no</Table.Th>
+                    <Table.Th>Email</Table.Th>
+                    <Table.Th>Address</Table.Th>
+                    <Table.Th>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {filteredPersons.map((p) => (
+                    <Table.Tr key={p.id}>
+                      <Table.Td className="font-medium">{p.name}</Table.Td>
+                      <Table.Td>{p.mobile || '—'}</Table.Td>
+                      <Table.Td>{p.email || '—'}</Table.Td>
+                      <Table.Td className="max-w-[200px] truncate">{p.address || '—'}</Table.Td>
+                      <Table.Td>
+                        <div className="flex gap-1">
+                          <ActionIcon
+                            variant="subtle"
+                            color="teal"
+                            onClick={() => setViewingPerson(p)}
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color="teal"
+                            onClick={() => handleEditPerson(p)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            onClick={() => handleDeletePerson(p)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </ActionIcon>
+                        </div>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            )}
+          </Tabs.Panel>
+
+          <Tabs.Panel value="diesel" pt="md">
+            <div className="mb-4 flex justify-end">
+              <Button leftSection={<Fuel className="h-4 w-4" />} color="teal" onClick={handleAddDiesel}>
+                Add Vehicle
+              </Button>
             </div>
-          </section>
-        )}
-        {commissionLabour.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-slate-800">Commission / Labour</h2>
-            <div className={detailGridClass}>
-              {filteredCommission.map((c) => (
-                <DetailCard
-                  key={c.id}
-                  title={c.name}
-                  fields={[{ label: 'Amount', value: String(c.amount) }]}
-                  onView={() => setViewingCommission(c)}
-                  onDelete={() => handleDeleteCommission(c)}
-                />
-              ))}
+            {filteredDiesel.length === 0 ? (
+              <p className="py-8 text-center text-slate-500">No vehicle entries yet. Click Add Vehicle to create one.</p>
+            ) : (
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>Amount</Table.Th>
+                    <Table.Th>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {filteredDiesel.map((d) => (
+                    <Table.Tr key={d.id}>
+                      <Table.Td className="font-medium">{d.name}</Table.Td>
+                      <Table.Td>{d.amount ?? '—'}</Table.Td>
+                      <Table.Td>
+                        <div className="flex gap-1">
+                          <ActionIcon
+                            variant="subtle"
+                            color="teal"
+                            onClick={() => handleEditDiesel(d)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            onClick={() => handleDeleteDiesel(d)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </ActionIcon>
+                        </div>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            )}
+          </Tabs.Panel>
+
+          <Tabs.Panel value="commission" pt="md">
+            <div className="mb-4 flex justify-end">
+              <Button leftSection={<Briefcase className="h-4 w-4" />} color="teal" onClick={handleAddCommission}>
+                Add Commission/Labour
+              </Button>
             </div>
-          </section>
-        )}
-      </div>
+            {filteredCommission.length === 0 ? (
+              <p className="py-8 text-center text-slate-500">No commission/labour entries yet. Click Add to create one.</p>
+            ) : (
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Name</Table.Th>
+                    <Table.Th>Amount</Table.Th>
+                    <Table.Th>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {filteredCommission.map((c) => (
+                    <Table.Tr key={c.id}>
+                      <Table.Td className="font-medium">{c.name}</Table.Td>
+                      <Table.Td>{c.amount ?? '—'}</Table.Td>
+                      <Table.Td>
+                        <div className="flex gap-1">
+                          <ActionIcon
+                            variant="subtle"
+                            color="teal"
+                            onClick={() => handleEditCommission(c)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            color="red"
+                            onClick={() => handleDeleteCommission(c)}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </ActionIcon>
+                        </div>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            )}
+          </Tabs.Panel>
+        </Tabs>
+      </Card>
 
       <PersonViewModal open={!!viewingPerson} onClose={() => setViewingPerson(null)} person={viewingPerson} />
 
-      <Modal open={!!viewingDiesel} onClose={() => setViewingDiesel(null)} title="View Diesel">
-        {viewingDiesel && (
-          <>
-            <dl className="space-y-4">
-              <div>
-                <dt className="text-sm font-medium text-slate-500">Name</dt>
-                <dd className="mt-1 text-slate-800">{viewingDiesel.name || '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-slate-500">Amount</dt>
-                <dd className="mt-1 text-slate-800">{viewingDiesel.amount ?? '—'}</dd>
-              </div>
-            </dl>
-            <button type="button" onClick={() => setViewingDiesel(null)} className="mt-6 w-full rounded-lg bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-500">Close</button>
-          </>
-        )}
-      </Modal>
-
-      <Modal open={!!viewingCommission} onClose={() => setViewingCommission(null)} title="View Commission / Labour">
-        {viewingCommission && (
-          <>
-            <dl className="space-y-4">
-              <div>
-                <dt className="text-sm font-medium text-slate-500">Name</dt>
-                <dd className="mt-1 text-slate-800">{viewingCommission.name || '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-slate-500">Amount</dt>
-                <dd className="mt-1 text-slate-800">{viewingCommission.amount ?? '—'}</dd>
-              </div>
-            </dl>
-            <button type="button" onClick={() => setViewingCommission(null)} className="mt-6 w-full rounded-lg bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-500">Close</button>
-          </>
-        )}
-      </Modal>
-
       <PersonModal
-        open={openModal === 'person'}
-        onClose={() => setOpenModal(null)}
-        onSave={addPerson}
+        open={personModalOpen}
+        onClose={() => { setPersonModalOpen(false); setEditingPerson(null); }}
+        onSave={handleSavePerson}
+        editing={editingPerson}
       />
       <DieselModal
-        open={openModal === 'diesel'}
-        onClose={() => setOpenModal(null)}
-        onSave={addDiesel}
+        open={dieselModalOpen}
+        onClose={() => { setDieselModalOpen(false); setEditingDiesel(null); }}
+        onSave={handleSaveDiesel}
+        editing={editingDiesel}
       />
       <CommissionLabourModal
-        open={openModal === 'commission'}
-        onClose={() => setOpenModal(null)}
-        onSave={addCommissionLabour}
+        open={commissionModalOpen}
+        onClose={() => { setCommissionModalOpen(false); setEditingCommission(null); }}
+        onSave={handleSaveCommission}
+        editing={editingCommission}
       />
     </div>
   );

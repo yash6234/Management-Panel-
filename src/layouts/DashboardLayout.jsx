@@ -6,11 +6,11 @@ import { SearchProvider } from '../context/SearchContext';
 export default function DashboardLayout() {
   return (
     <SearchProvider>
-      <div className="flex h-screen bg-slate-100">
+      <div className="flex h-screen bg-[#F8FAFC]">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <DashboardHeader />
-          <main className="flex-1 overflow-auto">
+          <main className="flex min-h-0 flex-1 flex-col overflow-auto">
             <Outlet />
           </main>
         </div>

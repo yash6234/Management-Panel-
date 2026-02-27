@@ -1,79 +1,94 @@
-import { useState } from 'react';
-import Modal from '../ui/Modal';
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { Modal, TextInput, NumberInput, Button, Stack } from '@mantine/core';
 
-export default function CommissionLabourModal({ open, onClose, onSave }) {
-  const [form, setForm] = useState({ name: '', amount: '' });
-  const [error, setError] = useState('');
+export default function CommissionLabourModal({ open, onClose, onSave, editing }) {
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm({
+    defaultValues: { name: '', amount: 0 },
+  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setError('');
-  };
+  useEffect(() => {
+    if (open) {
+      clearErrors();
+      reset(editing ? { name: editing.name, amount: editing.amount ?? 0 } : { name: '', amount: 0 });
+    }
+  }, [open, editing, reset, clearErrors]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) {
-      setError('Name is required');
+  const onSubmit = (data) => {
+    if (!data.name?.trim()) {
+      setError('name', { message: 'Name is required' });
       return;
     }
-    if (!form.amount.trim() || isNaN(Number(form.amount))) {
-      setError('Please enter a valid amount');
+    const amount = Number(data.amount);
+    if (isNaN(amount) || amount < 0) {
+      setError('amount', { message: 'Enter a valid amount' });
       return;
     }
-    onSave({ name: form.name, amount: Number(form.amount) });
-    setForm({ name: '', amount: '' });
-    setError('');
+    onSave({ name: data.name.trim(), amount });
+    reset();
     onClose();
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Commission / Labour">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+    <Modal
+      opened={!!open}
+      onClose={onClose}
+      title={editing ? 'Edit Commission/Labour' : 'Add Commission/Labour'}
+      centered
+      radius="md"
+      styles={{
+        header: { borderBottom: '1px solid #E5E7EB' },
+        content: { maxWidth: 420 },
+      }}
+    >
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Stack gap="md">
+          <TextInput
+            label="Name"
             placeholder="Name"
+            required
+            {...register('name')}
+            error={errors.name?.message}
+            styles={{ input: { borderRadius: '8px' } }}
           />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Amount
-          </label>
-          <input
-            type="number"
+          <Controller
             name="amount"
-            value={form.amount}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-            placeholder="Amount"
+            control={control}
+            render={({ field }) => (
+              <NumberInput
+                label="Amount"
+                placeholder="Amount"
+                min={0}
+                step={0.01}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.amount?.message}
+                styles={{ input: { borderRadius: '8px' } }}
+              />
+            )}
           />
-        </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-slate-300 bg-white py-2.5 font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="flex-1 rounded-lg bg-indigo-600 py-2.5 font-medium text-white hover:bg-indigo-500"
-          >
-            Save
-          </button>
-        </div>
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="default"
+              fullWidth
+              onClick={onClose}
+              className="border-[#E5E7EB]"
+            >
+              Cancel
+            </Button>
+            <Button fullWidth type="submit" color="teal">
+              Save
+            </Button>
+          </div>
+        </Stack>
       </form>
     </Modal>
   );

@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import DashboardHome from './pages/DashboardHome';
 import Masters from './pages/Masters';
 import Sales from './pages/Sales';
+import Data from './pages/Data';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route index element={<DashboardHome />} />
         <Route path="masters" element={<Masters />} />
         <Route path="sales" element={<Sales />} />
+        <Route path="data" element={<Data />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
