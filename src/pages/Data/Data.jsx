@@ -1,35 +1,38 @@
 import { useState } from 'react';
-import { Tabs, Card } from '@mantine/core';
+import { useOutletContext } from 'react-router-dom';
 import { Users, Fuel, Briefcase, ShoppingCart } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { useSearch } from '../context/SearchContext';
 import { format } from 'date-fns';
-import DetailCard, { dataGridClass } from '../components/ui/DetailCard';
+import DetailCard, { dataGridClass } from './DetailCard';
 
 export default function Data() {
+  const {
+    persons = [],
+    dieselEntries = [],
+    commissionLabour = [],
+    salesEntries = [],
+  } = useOutletContext();
   const [activeTab, setActiveTab] = useState('persons');
-  const { persons, dieselEntries, commissionLabour, salesEntries } = useApp();
-  const { searchQuery } = useSearch();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const matchesSearch = (text) => {
     if (!searchQuery.trim()) return true;
     return String(text).toLowerCase().includes(searchQuery.trim().toLowerCase());
   };
 
-  const filteredPersons = persons.filter(
+  const filteredPersons = (persons || []).filter(
     (p) =>
       matchesSearch(p.name) ||
       matchesSearch(p.mobile) ||
       matchesSearch(p.email) ||
       matchesSearch(p.address)
   );
-  const filteredDiesel = dieselEntries.filter(
+  const filteredDiesel = (dieselEntries || []).filter(
     (d) => matchesSearch(d.name) || matchesSearch(String(d.amount))
   );
-  const filteredCommission = commissionLabour.filter(
+  const filteredCommission = (commissionLabour || []).filter(
     (c) => matchesSearch(c.name) || matchesSearch(String(c.amount))
   );
-  const filteredSales = salesEntries.filter(
+  const filteredSales = (salesEntries || []).filter(
     (s) =>
       matchesSearch(s.name) ||
       matchesSearch(s.salesOfProducts) ||
@@ -37,34 +40,47 @@ export default function Data() {
       matchesSearch(s.location)
   );
 
+  const tabClass = (tab) =>
+    `flex items-center gap-2 rounded-t-lg border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+      activeTab === tab
+        ? 'border-[#0F766E] bg-white text-[#0F766E]'
+        : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+    }`;
+
   return (
     <div className="p-6 lg:p-8">
-      {/* <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">All Data</h1>
-        <p className="mt-1 text-slate-600">
-          View all persons, vehicle, commission/labour, and sales entries in one place.
-        </p>
-      </div> */}
-
-      <Card shadow="sm" padding="lg" radius="md" className="border border-[#E5E7EB] bg-white">
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tabs.List>
-            <Tabs.Tab value="persons" leftSection={<Users className="h-4 w-4" />}>
+      <div className="rounded-lg border border-[#E5E7EB] bg-white shadow-sm">
+        <div className="mb-4 flex items-center gap-4 border-b border-[#E5E7EB] px-6 pt-4 pb-2">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="max-w-xs rounded-lg border border-[#E5E7EB] bg-slate-50 py-2 px-4 text-slate-800 placeholder-slate-500 focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20"
+          />
+          <div className="flex gap-0">
+            <button type="button" className={tabClass('persons')} onClick={() => setActiveTab('persons')}>
+              <Users className="h-4 w-4" />
               Personal Details ({persons.length})
-            </Tabs.Tab>
-            <Tabs.Tab value="diesel" leftSection={<Fuel className="h-4 w-4" />}>
+            </button>
+            <button type="button" className={tabClass('diesel')} onClick={() => setActiveTab('diesel')}>
+              <Fuel className="h-4 w-4" />
               Vehicle ({dieselEntries.length})
-            </Tabs.Tab>
-            <Tabs.Tab value="commission" leftSection={<Briefcase className="h-4 w-4" />}>
+            </button>
+            <button type="button" className={tabClass('commission')} onClick={() => setActiveTab('commission')}>
+              <Briefcase className="h-4 w-4" />
               Commission/Labour ({commissionLabour.length})
-            </Tabs.Tab>
-            <Tabs.Tab value="sales" leftSection={<ShoppingCart className="h-4 w-4" />}>
+            </button>
+            <button type="button" className={tabClass('sales')} onClick={() => setActiveTab('sales')}>
+              <ShoppingCart className="h-4 w-4" />
               Sales ({salesEntries.length})
-            </Tabs.Tab>
-          </Tabs.List>
+            </button>
+          </div>
+        </div>
 
-          <Tabs.Panel value="persons" pt="md">
-            {filteredPersons.length === 0 ? (
+        <div className="p-6 pt-4">
+          {activeTab === 'persons' && (
+            filteredPersons.length === 0 ? (
               <p className="py-8 text-center text-slate-500">No persons added yet.</p>
             ) : (
               <div className={dataGridClass}>
@@ -81,11 +97,11 @@ export default function Data() {
                   />
                 ))}
               </div>
-            )}
-          </Tabs.Panel>
+            )
+          )}
 
-          <Tabs.Panel value="diesel" pt="md">
-            {filteredDiesel.length === 0 ? (
+          {activeTab === 'diesel' && (
+            filteredDiesel.length === 0 ? (
               <p className="py-8 text-center text-slate-500">No vehicle entries yet.</p>
             ) : (
               <div className={dataGridClass}>
@@ -98,11 +114,11 @@ export default function Data() {
                   />
                 ))}
               </div>
-            )}
-          </Tabs.Panel>
+            )
+          )}
 
-          <Tabs.Panel value="commission" pt="md">
-            {filteredCommission.length === 0 ? (
+          {activeTab === 'commission' && (
+            filteredCommission.length === 0 ? (
               <p className="py-8 text-center text-slate-500">No commission/labour entries yet.</p>
             ) : (
               <div className={dataGridClass}>
@@ -115,11 +131,11 @@ export default function Data() {
                   />
                 ))}
               </div>
-            )}
-          </Tabs.Panel>
+            )
+          )}
 
-          <Tabs.Panel value="sales" pt="md">
-            {filteredSales.length === 0 ? (
+          {activeTab === 'sales' && (
+            filteredSales.length === 0 ? (
               <p className="py-8 text-center text-slate-500">No sales entries yet.</p>
             ) : (
               <div className={dataGridClass}>
@@ -138,10 +154,10 @@ export default function Data() {
                   />
                 ))}
               </div>
-            )}
-          </Tabs.Panel>
-        </Tabs>
-      </Card>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }

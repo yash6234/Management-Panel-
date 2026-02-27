@@ -1,14 +1,14 @@
 import axios from 'axios';
 import Cookie from 'js-cookie';
-import { encryptData, decryptData } from './enc.dec_admin.js';
+import { encryptData, decryptData } from './enc_dec_admin.js';
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = 'data';
 const cookieData = Cookie.get('data');
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
+export const getToken = () => sessionStorage.getItem(TOKEN_KEY);
 export const setToken = (token) => {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  if (token) sessionStorage.setItem(TOKEN_KEY, token);
+  else sessionStorage.removeItem(TOKEN_KEY);
 };
 
 const getBaseUrl = () => {
@@ -47,7 +47,7 @@ export const login = async (data) => {
       decrypted === 'Login_Verified_Successfully_And_Response_Token_Sent' ||
       decryptedMessage === 'Login_Verified_Successfully_And_Response_Token_Sent'
     ) {
-      const token = response.data?.token;
+      const token = response.data?.data;
       if (token) setToken(token);
       return {
         success: true,

@@ -1,20 +1,10 @@
-import { Modal, Button } from '@mantine/core';
+import Modal from '../../../components/Modal';
 
 export default function PersonViewModal({ open, onClose, person }) {
   if (!person) return null;
 
   return (
-    <Modal
-      opened={!!open}
-      onClose={onClose}
-      title="View Personal Details"
-      centered
-      radius="md"
-      styles={{
-        header: { borderBottom: '1px solid #E5E7EB' },
-        content: { maxWidth: 420 },
-      }}
-    >
+    <Modal open={!!open} onClose={onClose} title="View Personal Details">
       <dl className="space-y-4">
         <div>
           <dt className="text-sm font-medium text-slate-500">Name</dt>
@@ -34,9 +24,13 @@ export default function PersonViewModal({ open, onClose, person }) {
         </div>
       </dl>
       <div className="mt-6">
-        <Button fullWidth color="teal" onClick={onClose}>
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full rounded-lg bg-[#0F766E] py-2.5 font-medium text-white hover:bg-[#0d9488]"
+        >
           Close
-        </Button>
+        </button>
       </div>
     </Modal>
   );

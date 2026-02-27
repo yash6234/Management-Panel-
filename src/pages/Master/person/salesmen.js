@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { encryptData, decryptData } from './enc_dec_admin.js';
-import { getToken } from './auth.js';
+import { encryptData, decryptData } from '../../../api/enc_dec_admin.js';
 
 const getBaseUrl = () => {
   const ip = import.meta.env.VITE_IP || '';
@@ -8,10 +7,10 @@ const getBaseUrl = () => {
   return base.replace(/\/$/, '');
 };
 
-const createEncodedPayload = (payload) => {
-  const token = getToken();
-  const data = token ? { token, ...payload } : payload;
-  return encodeURIComponent(encryptData(data));
+const CookieData = sessionStorage.getItem('data');
+
+const createEncodedPayload = (additionalData = {}) => {
+  return encodeURIComponent(encryptData({ data: CookieData, ...additionalData }));
 };
 
 /** Map API response to app format */
@@ -34,8 +33,7 @@ const mapToApi = (item) => ({
 
 export const addSalesMan = async (person) => {
   const baseUrl = getBaseUrl();
-  const payload = mapToApi(person);
-  const encodedData = createEncodedPayload(payload);
+  const encodedData = createEncodedPayload(mapToApi(person));
 
   const response = await axios.get(
     `${baseUrl}/master/sales-man/add/${encodedData}`
@@ -52,14 +50,9 @@ export const addSalesMan = async (person) => {
   return response.data;
 };
 
-/**
- * Edit person - GET /master/sales-man/edit/:data
- * Payload: { _id, name, mobile_no, email, address }
- */
 export const editSalesMan = async (id, person) => {
   const baseUrl = getBaseUrl();
-  const payload = { _id: id, ...mapToApi(person) };
-  const encodedData = createEncodedPayload(payload);
+  const encodedData = createEncodedPayload({ _id: id, ...mapToApi(person) });
 
   const response = await axios.get(
     `${baseUrl}/master/sales-man/edit/${encodedData}`
@@ -76,9 +69,6 @@ export const editSalesMan = async (id, person) => {
   return response.data;
 };
 
-/**
- * Fetch all persons - GET /master/sales-man/fetch/:data
- */
 export const fetchSalesMen = async () => {
   const baseUrl = getBaseUrl();
   const encodedData = createEncodedPayload({});
@@ -89,6 +79,7 @@ export const fetchSalesMen = async () => {
 
   if (response.data?.data) {
     try {
+      sessionStorage.setItem('data', response.data.data);
       const decrypted = decryptData(response.data.data);
       const list = Array.isArray(decrypted) ? decrypted : [decrypted];
       return list.map(mapFromApi);
@@ -99,14 +90,9 @@ export const fetchSalesMen = async () => {
   return [];
 };
 
-/**
- * Delete person - GET /master/sales-man/delete/:data
- * Payload: { _id }
- */
 export const deleteSalesMan = async (id) => {
   const baseUrl = getBaseUrl();
-  const payload = { _id: id };
-  const encodedData = createEncodedPayload(payload);
+  const encodedData = createEncodedPayload({ _id: id });
 
   const response = await axios.get(
     `${baseUrl}/master/sales-man/delete/${encodedData}`

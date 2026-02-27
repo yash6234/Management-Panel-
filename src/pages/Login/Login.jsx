@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { login as loginApi } from '../api/auth';
+import { login as loginApi, setToken } from './auth';
+import { useNavigate } from 'react-router-dom';
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+ function Login({ onLoginSuccess }) {
+  const [email, setEmail] = useState('admin@nuviontech.com');
+  const [password, setPassword] = useState('admin');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { verifyOtp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -32,15 +30,16 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const result = await loginApi({ email: trimmedEmail, password });
-      if (result?.success) {
-        verifyOtp();
-        navigate('/dashboard');
+      const result = await loginApi({ email, password });
+  
+      if (result.success) {
+        console.log("Login Success",result);
+        window.location.href = '/dashboard';
       } else {
-        setError(result?.msg || 'Login failed. Please try again.');
+        setError(result.message);
       }
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -110,3 +109,4 @@ export default function Login() {
     </div>
   );
 }
+export default Login;

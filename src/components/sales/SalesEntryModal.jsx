@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { format } from 'date-fns';
 import { Modal, TextInput, Button, Stack, Select } from '@mantine/core';
-import { useApp } from '../../context/AppContext';
 
 function toDateOnly(date) {
   if (!date) return '';
@@ -10,8 +9,7 @@ function toDateOnly(date) {
   return format(d, 'yyyy-MM-dd');
 }
 
-export default function SalesEntryModal({ open, onClose, onSave, selectedDate }) {
-  const { persons } = useApp();
+export default function SalesEntryModal({ open, onClose, onSave, selectedDate, persons = [] }) {
   const personOptions = [
     { value: '', label: '— Select person (optional) —' },
     ...persons.map((p) => ({ value: p.id || p._id, label: p.name || p.id || p._id })),

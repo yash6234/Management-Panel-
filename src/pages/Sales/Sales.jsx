@@ -1,28 +1,27 @@
 import { useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { startOfDay, addHours } from 'date-fns';
-import { Select } from '@mantine/core';
-import { useApp } from '../context/AppContext';
-import SalesEntryModal from '../components/sales/SalesEntryModal';
+import SalesEntryModal from './SalesEntryModal';
 
 export default function Sales() {
-  const { persons, salesEntries, addSalesEntry } = useApp();
+  const { persons = [], salesEntries = [], addSalesEntry } = useOutletContext();
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [salesModalOpen, setSalesModalOpen] = useState(false);
   const [selectedSlotDate, setSelectedSlotDate] = useState(null);
 
   const personOptions = [
     { value: '', label: 'All persons' },
-    ...persons.map((p) => ({ value: p.id || p._id, label: p.name })),
+    ...(persons || []).map((p) => ({ value: p.id || p._id, label: p.name })),
   ];
 
   const filteredSalesEntries = useMemo(() => {
-    if (!selectedPersonId) return salesEntries;
-    return salesEntries.filter(
+    if (!selectedPersonId) return salesEntries || [];
+    return (salesEntries || []).filter(
       (e) =>
         e.personId === selectedPersonId ||
         e.name === persons.find((p) => (p.id || p._id) === selectedPersonId)?.name
@@ -30,7 +29,7 @@ export default function Sales() {
   }, [salesEntries, selectedPersonId, persons]);
 
   const events = useMemo(() => {
-    return filteredSalesEntries.map((entry) => {
+    return (filteredSalesEntries || []).map((entry) => {
       const start = startOfDay(new Date(entry.date));
       const end = addHours(start, 1);
       const title = entry.name
@@ -53,24 +52,19 @@ export default function Sales() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#E5E7EB] bg-white px-6 py-4">
-        {/* <div>
-          <h1 className="text-xl font-bold text-slate-800">Sales Calendar</h1>
-          <p className="text-sm text-slate-600">
-            Click a date to add a sales entry. View all data in the Data page.
-          </p>
-        </div> */}
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-[#0F766E]" />
-          <Select
-            placeholder="All persons"
-            data={personOptions}
+          <select
             value={selectedPersonId}
-            onChange={setSelectedPersonId}
-            clearable
-            searchable
-            className="min-w-[180px]"
-            styles={{ input: { borderRadius: '8px' } }}
-          />
+            onChange={(e) => setSelectedPersonId(e.target.value)}
+            className="min-w-[180px] rounded-lg border border-[#E5E7EB] bg-white px-4 py-2.5 text-slate-800 focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20"
+          >
+            {personOptions.map((opt) => (
+              <option key={opt.value || 'all'} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -82,6 +76,7 @@ export default function Sales() {
         }}
         onSave={addSalesEntry}
         selectedDate={selectedSlotDate}
+        persons={persons || []}
       />
 
       <div className="flex-1 min-h-0 p-4">

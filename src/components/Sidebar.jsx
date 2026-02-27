@@ -1,6 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ShoppingCart, Database, LogOut } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -9,12 +8,11 @@ const navItems = [
   { to: '/dashboard/data', label: 'Data', icon: Database },
 ];
 
-export default function Sidebar() {
-  const { logout } = useAuth();
+export default function Sidebar({ onLogout }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    if (typeof onLogout === 'function') onLogout();
     navigate('/login');
   };
 
