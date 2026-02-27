@@ -110,12 +110,12 @@ export default function Masters() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">Masters</h1>
-        <p className="mt-1 text-slate-600">
-          Manage Person, Vehicle, and Commission/Labour data. Use tabs to switch between tables.
-        </p>
-      </div>
+      {/* //   <div className="mb-8">
+    //     <h1 className="text-2xl font-bold text-slate-800">Masters</h1>
+    //     <p className="mt-1 text-slate-600">
+    //       Manage Person, Vehicle, and Commission/Labour data. Use tabs to switch between tables.
+    //     </p>
+    //   </div> */}
 
       <Card shadow="sm" padding="lg" radius="md" className="border border-[#E5E7EB] bg-white">
         <Tabs value={activeTab} onChange={setActiveTab}>
@@ -312,6 +312,6 @@ export default function Masters() {
         onSave={handleSaveCommission}
         editing={editingCommission}
       />
-    </div>
+    </div >
   );
 }

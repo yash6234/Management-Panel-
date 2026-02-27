@@ -53,12 +53,12 @@ export default function Sales() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#E5E7EB] bg-white px-6 py-4">
-        <div>
+        {/* <div>
           <h1 className="text-xl font-bold text-slate-800">Sales Calendar</h1>
           <p className="text-sm text-slate-600">
             Click a date to add a sales entry. View all data in the Data page.
           </p>
-        </div>
+        </div> */}
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-[#0F766E]" />
           <Select

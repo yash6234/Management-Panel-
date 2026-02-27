@@ -39,12 +39,12 @@ export default function Data() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">All Data</h1>
         <p className="mt-1 text-slate-600">
           View all persons, vehicle, commission/labour, and sales entries in one place.
         </p>
-      </div>
+      </div> */}
 
       <Card shadow="sm" padding="lg" radius="md" className="border border-[#E5E7EB] bg-white">
         <Tabs value={activeTab} onChange={setActiveTab}>

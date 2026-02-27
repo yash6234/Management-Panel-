@@ -44,12 +44,12 @@ export default function DashboardHome() {
 
   return (
     <div className="p-6 lg:p-8">
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
         <p className="mt-1 text-slate-600">
           Overview of all management panel sections and quick stats.
         </p>
-      </div>
+      </div> */}
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {filteredCards.map(({ id, label, icon: Icon }) => (
